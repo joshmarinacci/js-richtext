@@ -1,0 +1,17 @@
+{
+  "name": "richtext",
+  "version": "0.0.2",
+  "description": "Rich Text Editor component for Canvas",
+  "author": {
+    "name": "Josh Marinacci",
+    "email": "joshua@marinacci.org",
+    "url": "http://joshondesign.com/"
+  },
+  "main": "./src/component.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/joshmarinacci/js-richtext.git"
+  },
+  "dependencies": {
+  }
+}

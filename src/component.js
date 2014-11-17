@@ -475,3 +475,5 @@ exports.makeRichTextView = function(conf) {
     }
 
 }
+
+exports.Document = Document;
