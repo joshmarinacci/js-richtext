@@ -1,4 +1,5 @@
 var common = require('./common');
+var Document = require('./document').Document;
 
 // make a new block path at the first character of the document
 function makeBlockPath(frame) {
