@@ -10,29 +10,23 @@
 
 </head>
 <body>
+    <p>
+        <button id='toggleBias'>toggle bias</button>
+    </p>
     <canvas id='canvas' width='600' height='400'></canvas>
 </body>
 <script src='bundle.js'></script>
 <script type='text/javascript'>
+
+function bindClick(id,cb) {
+    document.getElementById(id).addEventListener('click',cb);
+}
+
 var comp = require('rt-component');
 var Document = comp.Document;
 function makeStyledJSDoc() {
     var frame = Document.makeFrame();
     frame.styles = {
-        'bold': {
-            'color':'#000000',
-            'font-family':"'Source Sans Pro'",
-            'font-weight':'bold',
-        },
-        'italic': {
-            'color':'#000000',
-            'font-style':'italic',
-        },
-        'plain': {
-            'font-size':20,
-            'color':'#000000',
-            'font-style':'normal',
-        },
         'paragraph': {
             'color':'#000000',
             'font-size':20,
@@ -44,15 +38,7 @@ function makeStyledJSDoc() {
 
     var blk = frame.insertBlock();
     blk.stylename = 'paragraph';
-    blk.insertSpan("some plain text").stylename='plain';
-    blk.insertSpan(" more").stylename = 'italic';
-    blk.insertSpan(" and yet again");
-    var blk = frame.insertBlock();
-    blk.stylename = 'paragraph';
-    blk.insertSpan("some plain text").stylename='plain';
-    var blk = frame.insertBlock();
-    blk.stylename = 'paragraph';
-    blk.insertSpan("some plain text").stylename='plain';
+    blk.insertSpan("some plain text");
     return frame;
 }
 
@@ -79,6 +65,16 @@ WebFont.load({
     }
 });
 
+
+bindClick('toggleBias',function() {
+    console.log("toggling the bias");
+    if(RT.cursor.bias == 'left') {
+        RT.cursor.bias = 'right';
+    } else {
+        RT.cursor.bias = 'left';
+    }
+    requestAnimationFrame(RT.redraw);
+});
 
 
 </script>

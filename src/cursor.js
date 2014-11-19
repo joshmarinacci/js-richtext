@@ -47,6 +47,10 @@ function Cursor(frame,rendertree) {
         });
     }
 
+    this.setBias = function(bias) {
+        this.bias = bias;
+    }
+
     this.findBoxWithXY = function(pt, renderTree) {
         for(var i=0; i<renderTree.blocks.length; i++) {
             var block = renderTree.blocks[i];
@@ -107,11 +111,18 @@ function Cursor(frame,rendertree) {
         if(p.inset < 0) {
             //if first span in the block
             if(p.span == p.block.spans.first()) {
+                //if still right bias, just switch left and return
+                if(this.bias == 'right') {
+                    this.setBias('left');
+                    p.inset = 0;
+                    return;
+                }
                 //if first block in the frame
                 if(p.block == p.frame.blocks.first()) {
                     p.inset = 0;
                     return;
                 } else {
+                    this.setBias('right');
                     p.block = p.block.prev();
                     p.span = p.block.spans.last();
                 }
@@ -127,7 +138,7 @@ function Cursor(frame,rendertree) {
 
                 //if need to go to next block but still left bias.
                 if(p.inset == p.span.chars.length && this.bias == 'left') {
-                    this.bias = 'right';
+                    this.setBias('right');
                     return;
                 }
 
@@ -136,6 +147,7 @@ function Cursor(frame,rendertree) {
                     //end of the frame
                     p.inset = p.span.chars.length-1;
                 } else {
+                    this.setBias('left');
                     p.block = p.block.next();
                     p.span = p.block.spans.first();
                     p.inset = 0;
@@ -246,14 +258,23 @@ function Cursor(frame,rendertree) {
 
     this.renderPathToXY = function(path) {
         var str = path.run.span.chars.slice(path.run.spanstart,path.run.spanstart+path.inset);
+        function measure(str) {
+            return path.run.fctx.charWidth(str,
+                path.run.style['font-size'],
+                path.run.style['font-family'],
+                path.run.style['font-weight'],
+                path.run.style['font-style']
+            );
+        }
+        var strw = measure(str);
+        var chn = path.run.spanstart+path.inset;
+        var chc = path.run.span.chars.slice(chn,chn+1);
+        var chw = measure(chc);
+        if(this.bias == 'right') {
+            strw += chw;
+        }
         return {
-            x: path.box.x + path.line.x + path.run.x +
-                path.run.fctx.charWidth(str,
-                    path.run.style['font-size'],
-                    path.run.style['font-family'],
-                    path.run.style['font-weight'],
-                    path.run.style['font-style']
-                    ),
+            x: path.box.x + path.line.x + path.run.x + strw,
             y: path.box.y + path.line.y + path.run.y ,
         }
     }
@@ -264,7 +285,7 @@ function Cursor(frame,rendertree) {
             +span.substring(inset+1));
     }
 
-    function deleteForward(bp) {
+    function deleteForward(bp,cursor) {
         //if last char in the span
         if(bp.inset == bp.span.len) {
             //if last span in the block
@@ -284,12 +305,16 @@ function Cursor(frame,rendertree) {
                 bp.inset = 0;
             }
         }
-        removeCharFromSpan(bp.span,bp.inset);
+        if(cursor.bias == 'left') {
+            removeCharFromSpan(bp.span,bp.inset);
+        } else {
+            removeCharFromSpan(bp.span,bp.inset+1);
+        }
     }
 
     function deleteBackward(bp,cursor) {
         //if first char in the span
-        if(bp.inset == 0) {
+        if(bp.inset == 0 && cursor.bias == 'left') {
             //if first span in the block
             if(bp.span == bp.block.spans.first()) {
                 //if first block, do nothing
@@ -316,13 +341,17 @@ function Cursor(frame,rendertree) {
                 return;
             }
         }
-        removeCharFromSpan(bp.span,bp.inset-1);
+        if(cursor.bias == 'left') {
+            removeCharFromSpan(bp.span,bp.inset-1);
+        } else {
+            removeCharFromSpan(bp.span,bp.inset);
+        }
         cursor.moveH(-1);
     }
 
     this.removeChar = function(ti,dir) {
         var bp = this.getCurrentSpot();
-        if(dir == +1)  deleteForward(bp);
+        if(dir == +1)  deleteForward(bp,this);
         if(dir == -1) deleteBackward(bp,this);
     }
 
@@ -419,10 +448,14 @@ function Cursor(frame,rendertree) {
     }
 
     this.splitBlock = function(ti) {
-        var bp = this.getCurrentSpot();
+        var bp = this.getCurrentSpotCopy();
         var n = bp.span.getIndex();
+        var splitpoint = bp.inset;
+        if(this.bias == 'right') {
+            splitpoint = bp.inset+1;
+        }
         //split the target span
-        var spans = this.splitSpanWithInset(bp.span,bp.inset);
+        var spans = this.splitSpanWithInset(bp.span,splitpoint);
         //leave span 0 in place
         //move span 1 to the next block
 
@@ -441,6 +474,14 @@ function Cursor(frame,rendertree) {
         });
 
         this.setCurrentSpotAbsolute(block2.getIndex(),0,0);
+        this.setBias('left');
+    }
+    this.insertChar = function(blockpath,char) {
+        if(this.bias == 'left') {
+            blockpath.span.insertChar(blockpath.inset, char);
+        } else {
+            blockpath.span.insertChar(blockpath.inset+1,char);
+        }
     }
 
 

@@ -492,10 +492,7 @@ exports.makeRichTextView = function(conf) {
                 frame.activeSelection = null;
                 frame.selections[0] = null;
             }
-
-            var blockpath = cursor.getCurrentSpot();
-            if(blockpath == null) return;
-            blockpath.span.insertChar(blockpath.inset, evt.char);
+            cursor.insertChar(cursor.getCurrentSpot(), evt.char);
             relayout();
             cursor.moveH(+1);
             config.requestAnimationFrame(redraw);
