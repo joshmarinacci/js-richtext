@@ -205,8 +205,6 @@ var key_actions = {
         } else {
             doc.cursor.removeChar(doc.cursor.getCurrentSpot(),+1);
         }
-        doc.relayout();
-        requestAnimationFrame(doc.redraw);
     },
 
     'delete-backward': function(doc) {
@@ -216,8 +214,6 @@ var key_actions = {
         } else {
             doc.cursor.removeChar(doc.cursor.getCurrentSpotCopy(),-1);
         }
-        doc.relayout();
-        requestAnimationFrame(doc.redraw);
     },
 
     'split-line':function(doc) {
@@ -230,17 +226,13 @@ var key_actions = {
             doc.popup.visible = false;
             var blockpath = doc.cursor.getCurrentSpotCopy();
             blockpath.span.insertChar(blockpath.inset, str);
-            doc.relayout();
-            requestAnimationFrame(doc.redraw);
             return;
         }
         if(doc.frame.hasSelection()) {
             doc.cursor.removeSelection(doc.frame.getSelection());
             doc.frame.clearSelection();
         }
-        doc.cursor.splitBlock(doc.cursor.getCurrentSpot());
-        doc.relayout();
-        requestAnimationFrame(doc.redraw);
+        doc.cursor.splitBlock();
     },
 
     'popup-show': function(doc) {
@@ -400,6 +392,7 @@ exports.makeRichTextView = function(conf) {
                     multiline: config.multiline,
                     enterAction: config.enterAction,
                 });
+                checkLayout();
                 return true;
             }
         }
@@ -460,6 +453,13 @@ exports.makeRichTextView = function(conf) {
         processKeyEvent(evt,e);
     });
 
+    function checkLayout() {
+        if(config.frame.dirty == true) {
+            relayout();
+            config.frame.clearDirty();
+            config.requestAnimationFrame(redraw);
+        }
+    }
     function processKeyEvent(evt,e) {
         if(!evt.recognized)   return;
         if(evt.meta)          return;
@@ -493,9 +493,8 @@ exports.makeRichTextView = function(conf) {
                 frame.selections[0] = null;
             }
             cursor.insertChar(cursor.getCurrentSpot(), evt.char);
-            relayout();
             cursor.moveH(+1);
-            config.requestAnimationFrame(redraw);
+            checkLayout();
         }
     };
 

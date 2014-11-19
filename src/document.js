@@ -8,17 +8,26 @@ var Document = {
             activeSelection: null,
             style: common.DEFAULT_STYLE,
             len: 0,
+            dirty:true,
+            markDirty: function() {
+                this.dirty = true;
+            },
+            clearDirty: function() {
+                this.dirty = false;
+            },
             insertBlock: function(text) {
                 var block = Document.makeBlock(text);
                 block.parent = this;
                 this.blocks.push(block);
                 this.len += block.len;
+                this.markDirty();
                 return block;
             },
             insertBlockAt: function(n,block) {
                 block.parent = this;
                 this.blocks.splice(n,0,block);
                 this.len += block.len;
+                this.markDirty();
                 return block;
             },
             removeBlock: function(block) {
@@ -27,6 +36,7 @@ var Document = {
                 if(block.len != 0) throw new Error("Block with non-zero len!");
                 var n = this.blocks.indexOf(block);
                 this.blocks.splice(n,1);
+                this.markDirty();
                 return block;
             },
             getSelection: function() {
@@ -116,6 +126,7 @@ var Document = {
                 this.len = this.chars.length;
                 this.parent.len++;
                 this.parent.parent.len++;
+                this.parent.parent.markDirty();
             },
             setString: function(str) {
                 var oldlen = this.chars.length;
@@ -124,6 +135,7 @@ var Document = {
                 this.chars = str;
                 this.len+=diff;
                 this.parent.len+=diff;
+                this.parent.parent.markDirty();
                 this.parent.parent.len+=diff;
             },
             getIndex: function() {

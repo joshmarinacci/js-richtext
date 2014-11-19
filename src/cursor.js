@@ -447,7 +447,8 @@ function Cursor(frame,rendertree) {
         return spans;
     }
 
-    this.splitBlock = function(ti) {
+    //split the block at the current spot
+    this.splitBlock = function() {
         var bp = this.getCurrentSpotCopy();
         var n = bp.span.getIndex();
         var splitpoint = bp.inset;
