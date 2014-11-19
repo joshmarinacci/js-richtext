@@ -411,14 +411,39 @@ exports.makeRichTextView = function(conf) {
             }
         }
     }
-    if(typeof can !== 'undefined') can.addEventListener('mousedown', function(e) {
-        var pt = makePoint(e.offsetX,e.offsetY);
-        var rp = cursor.findBoxWithXY(pt, rend);
-        if(rp == null) return;
-        var bp = cursor.renderPathToBlockPath(rp);
-        cursor.setCurrentSpot(bp);
-        redraw();
-    })
+
+    if(typeof can !== 'undefined') {
+        var down = false;
+        can.addEventListener('mousedown', function(e) {
+            cursor.frame.clearSelection();
+            down = true;
+            var pt = makePoint(e.offsetX,e.offsetY);
+            var rp = cursor.findBoxWithXY(pt, rend);
+            if(rp == null) return;
+            var bp = cursor.renderPathToBlockPath(rp);
+            cursor.setCurrentSpot(bp);
+            redraw();
+        });
+        can.addEventListener('mousemove', function(e) {
+            if(down == true) {
+                e.preventDefault();
+                if(!cursor.frame.hasSelection()) {
+                    var spot = cursor.getCurrentSpotCopy();
+                    cursor.frame.setSelection(spot,spot);
+                }
+
+                var pt = makePoint(e.offsetX,e.offsetY);
+                var rp = cursor.findBoxWithXY(pt, rend);
+                var bp = cursor.renderPathToBlockPath(rp);
+                cursor.frame.getSelection().end = bp;
+                requestAnimationFrame(redraw);
+
+            }
+        });
+        can.addEventListener('mouseup', function(e) {
+            down = false;
+        });
+    }
 
     if(config.document) config.document.addEventListener('keydown', function(e) {
         var evt = keyboard.cookKeyboardEvent(e);
