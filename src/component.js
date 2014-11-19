@@ -221,6 +221,10 @@ var key_actions = {
     },
 
     'split-line':function(doc) {
+        if(doc.enterAction) {
+            doc.enterAction();
+        }
+        if(doc.multiline == false) return;
         if(doc.popup.visible) {
             var str = doc.popup.lines[doc.popup.selectedIndex];
             doc.popup.visible = false;
@@ -300,6 +304,10 @@ exports.makeRichTextView = function(conf) {
     //printDoc(frame);
     var rend = null;
     var ctx = config.context;
+    if(typeof config.multiline === 'undefined') {
+        config.multiline = true;
+    }
+
     var cursor = new Cursor(frame,rend);
     if(!config.charWidth) {
         config.charWidth = function(ch,
@@ -389,6 +397,8 @@ exports.makeRichTextView = function(conf) {
                     relayout:relayout,
                     renderTree:rend,
                     frame: cursor.frame,
+                    multiline: config.multiline,
+                    enterAction: config.enterAction,
                 });
                 return true;
             }
@@ -492,11 +502,21 @@ exports.makeRichTextView = function(conf) {
         }
     };
 
+    function getPlainText() {
+        var str = "";
+        cursor.frame.blocks.forEach(function(block) {
+            block.spans.forEach(function(span){
+                str += span.chars;
+            });
+        });
+        return str;
+    }
     return {
         relayout:relayout,
         redraw:redraw,
         cursor:cursor,
         processKeyEvent:processKeyEvent,
+        getPlainText: getPlainText,
     }
 
 }
