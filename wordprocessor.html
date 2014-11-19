@@ -1,0 +1,85 @@
+<html>
+<head>
+    <!--
+<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic|Source+Code+Pro:200,300,400,500,600,700,900|Source+Serif+Pro:400,600,700&amp;subset=latin,vietnamese,latin-ext" rel="stylesheet" type="text/css">
+-->
+
+<script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+<script>
+</script>
+
+</head>
+<body>
+    <canvas id='canvas' width='600' height='400'></canvas>
+</body>
+<script src='bundle.js'></script>
+<script type='text/javascript'>
+var comp = require('rt-component');
+var Document = comp.Document;
+function makeStyledJSDoc() {
+    var frame = Document.makeFrame();
+    frame.styles = {
+        'bold': {
+            'color':'#000000',
+            'font-family':"'Source Sans Pro'",
+            'font-weight':'bold',
+        },
+        'italic': {
+            'color':'#000000',
+            'font-style':'italic',
+        },
+        'plain': {
+            'font-size':20,
+            'color':'#000000',
+            'font-style':'normal',
+        },
+        'paragraph': {
+            'color':'#000000',
+            'font-size':20,
+            'font-family':"'Source Sans Pro'",
+            'font-style':'normal',
+            'block-padding':2,
+        }
+    }
+
+    var blk = frame.insertBlock();
+    blk.stylename = 'paragraph';
+    blk.insertSpan("some plain text").stylename='plain';
+    blk.insertSpan(" more").stylename = 'italic';
+    blk.insertSpan(" and yet again");
+    var blk = frame.insertBlock();
+    blk.stylename = 'paragraph';
+    blk.insertSpan("some plain text").stylename='plain';
+    var blk = frame.insertBlock();
+    blk.stylename = 'paragraph';
+    blk.insertSpan("some plain text").stylename='plain';
+    return frame;
+}
+
+
+var can = document.getElementById('canvas');
+var ctx = can.getContext('2d');
+
+var RT = comp.makeRichTextView({
+    frame:makeStyledJSDoc(),
+    context:ctx,
+    document:document,
+    requestAnimationFrame: function(a) {
+        window.requestAnimationFrame(a);
+    },
+});
+
+WebFont.load({
+    google: {
+        families: ['Source Sans Pro', 'Source Code Pro', 'Source Serif Pro']
+    },
+    active: function() {
+        RT.relayout();
+        requestAnimationFrame(RT.redraw);
+    }
+});
+
+
+
+</script>
+</html>
